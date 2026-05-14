@@ -170,6 +170,40 @@
     .upl-close{background:none;border:none;font-size:0.7rem;color:var(--muted);cursor:pointer;float:right;margin-top:-1.5rem;}
     .upl-close:hover{color:var(--ink);}
 
+    /* ── MAP PANEL ── */
+    #map-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:'Jost',sans-serif;font-size:0.6rem;letter-spacing:0.18em;color:rgba(42,33,24,0.5);text-transform:uppercase;background:rgba(237,233,224,0.85);border:1px solid rgba(42,33,24,0.2);cursor:pointer;display:none;z-index:15;padding:6px 14px;transition:color 0.3s;}
+    #map-btn:hover{color:rgba(42,33,24,0.85);}
+    #map-panel{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:340px;background:rgba(237,233,224,0.97);border:1px solid rgba(42,33,24,0.18);display:none;z-index:15;padding:1rem;}
+    #map-panel.open{display:block;}
+    #map-canvas{width:100%;border:1px solid var(--border);display:block;}
+    .map-legend{display:flex;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;}
+    .map-legend-item{display:flex;align-items:center;gap:0.3rem;font-size:0.58rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;}
+    .map-dot{width:8px;height:8px;border-radius:50%;}
+
+    /* ── SECRET ROOM PROMPT ── */
+    #secret-prompt{position:absolute;font-family:'Jost',sans-serif;font-size:0.62rem;letter-spacing:0.18em;color:rgba(42,33,24,0.5);text-transform:uppercase;background:rgba(237,233,224,0.85);padding:6px 14px;border:1px solid var(--border);pointer-events:none;display:none;z-index:6;transform:translateX(-50%);white-space:nowrap;}
+    #secret-panel{position:absolute;inset:0;background:rgba(10,8,6,0.96);display:none;align-items:center;justify-content:center;z-index:22;flex-direction:column;}
+    #secret-panel.open{display:flex;}
+    .sec-inner{text-align:center;width:360px;}
+    .sec-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:2rem;color:#c8b068;margin-bottom:0.4rem;}
+    .sec-sub{font-size:0.58rem;letter-spacing:0.3em;color:#5a5040;text-transform:uppercase;margin-bottom:2rem;}
+    .sec-input{background:transparent;border:none;border-bottom:1px solid #3a3020;padding:0.5rem 0;font-family:'Jost',sans-serif;font-size:0.9rem;color:#c8b068;text-align:center;outline:none;letter-spacing:0.2em;width:100%;margin-bottom:0.5rem;}
+    .sec-input::placeholder{color:#3a3020;}
+    .sec-error{font-size:0.65rem;color:#8b1a1a;min-height:1rem;letter-spacing:0.08em;margin-bottom:1rem;}
+    .sec-btn{background:transparent;border:1px solid #3a3020;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.15em;color:#c8b068;padding:0.7rem 2rem;cursor:pointer;transition:background 0.2s;}
+    .sec-btn:hover{background:rgba(200,176,104,0.1);}
+    .sec-close{background:none;border:none;font-size:0.65rem;color:#3a3020;cursor:pointer;letter-spacing:0.15em;margin-top:1.2rem;display:block;text-transform:uppercase;}
+    .sec-close:hover{color:#c8b068;}
+
+    /* ── MOBILE CONTROLS ── */
+    #mobile-controls{display:none;position:absolute;inset:0;pointer-events:none;z-index:8;}
+    #joystick-zone{position:absolute;bottom:80px;left:30px;width:120px;height:120px;pointer-events:all;}
+    #joystick-base{position:absolute;inset:0;border-radius:50%;background:rgba(42,33,24,0.12);border:1px solid rgba(42,33,24,0.2);}
+    #joystick-thumb{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(42,33,24,0.3);border:1px solid rgba(42,33,24,0.4);top:50%;left:50%;transform:translate(-50%,-50%);transition:none;}
+    #look-zone{position:absolute;bottom:0;right:0;width:55%;height:100%;pointer-events:all;touch-action:none;}
+    #jump-btn{position:absolute;bottom:90px;right:30px;width:56px;height:56px;border-radius:50%;background:rgba(42,33,24,0.15);border:1px solid rgba(42,33,24,0.25);pointer-events:all;font-family:'Jost',sans-serif;font-size:0.6rem;letter-spacing:0.1em;color:rgba(42,33,24,0.5);text-transform:uppercase;display:flex;align-items:center;justify-content:center;}
+    #sprint-btn{position:absolute;bottom:160px;right:30px;width:44px;height:44px;border-radius:50%;background:rgba(42,33,24,0.1);border:1px solid rgba(42,33,24,0.2);pointer-events:all;font-family:'Jost',sans-serif;font-size:0.55rem;letter-spacing:0.1em;color:rgba(42,33,24,0.45);text-transform:uppercase;display:flex;align-items:center;justify-content:center;}
+
     canvas{display:block;}
   </style>
 </head>
@@ -218,7 +252,7 @@
     <div id="blocker-hint">[ Click to Enter ]</div>
   </div>
   <div id="crosshair"></div>
-  <div id="hud">ESC to pause · WASD · Space jump · E guestbook · T chat</div>
+  <div id="hud">ESC to pause · WASD · Space jump · E guestbook · T chat · M map</div>
   <div id="visitor-count">1 visitor</div>
   <button id="music-btn">♪ music on</button>
   <div id="gb-prompt" class="gb-prompt">[ E ] Sign the Guestbook</div>
@@ -235,6 +269,41 @@
     <div class="upl-title">Hang Your Work</div>
     <div class="upl-slots" id="upl-slots"></div>
     <p class="upl-hint">Click a slot to upload an image. It will appear on that wall position immediately.</p>
+  </div>
+
+  <button id="map-btn">▦ Map</button>
+  <div id="map-panel">
+    <canvas id="map-canvas" width="308" height="220"></canvas>
+    <div class="map-legend">
+      <div class="map-legend-item"><div class="map-dot" style="background:#b5913a"></div>You</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#5b7fa6"></div>Visitors</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#8b1a1a"></div>Artwork</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#3a6b4a"></div>Exit</div>
+    </div>
+  </div>
+
+  <!-- SECRET ROOM -->
+  <div id="secret-prompt" class="gb-prompt">[ E ] ??</div>
+  <div id="secret-panel">
+    <div class="sec-inner">
+      <div class="sec-title">The Inner Room</div>
+      <div class="sec-sub">Speak the word</div>
+      <input type="text" class="sec-input" id="secret-input" placeholder="· · ·" maxlength="32" autocomplete="off"/>
+      <div class="sec-error" id="secret-error"></div>
+      <button class="sec-btn" id="secret-submit">Enter</button>
+      <button class="sec-close" id="secret-close">Leave this place</button>
+    </div>
+  </div>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="mobile-controls">
+    <div id="joystick-zone">
+      <div id="joystick-base"></div>
+      <div id="joystick-thumb"></div>
+    </div>
+    <div id="look-zone"></div>
+    <div id="jump-btn">Jump</div>
+    <div id="sprint-btn">Run</div>
   </div>
 
   <!-- ADMIN LIGHT PANEL -->
@@ -519,6 +588,23 @@ function initVR() {
     startMusic();
   });
 
+  // Right-click toggles pointer lock (free cursor ↔ look mode)
+  renderer.domElement.addEventListener('mousedown', e => {
+    if (e.button === 2) {
+      e.preventDefault();
+      if (locked) document.exitPointerLock();
+      else renderer.domElement.requestPointerLock();
+    }
+  });
+  renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Scroll-wheel speed burst ("zoop")
+  let zoopUntil = 0;
+  renderer.domElement.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoopUntil = performance.now() + 600; // burst lasts 600ms after last scroll tick
+  }, { passive: false });
+
   document.addEventListener('pointerlockchange', () => {
     locked = document.pointerLockElement === renderer.domElement;
     blocker.style.display   = locked ? 'none' : 'flex';
@@ -722,8 +808,88 @@ function initVR() {
   const r2light = new THREE.PointLight(0xfff5e0, 0.8, 30);
   r2light.position.set(0, 5, 23); scene.add(r2light);
 
-  // Extend movement bounds to include second room
-  // (handled below in animate loop — we'll update the clamp)
+  // ── Courtyard (off left wall of room 2) ──────────────────────────────────
+  // Doorway in left wall of room 2 at x=-16, z≈23
+  // Replace that wall segment with two pieces + frame
+  // Left room 2 wall already added as full slab — we need to split it
+  // We'll add courtyard door frame on top; the opening is x=-16, z=18–28, y=0–5
+  const mStone = new THREE.MeshStandardMaterial({color:0xc8c0b0,roughness:0.9,metalness:0});
+  const mGrass = new THREE.MeshStandardMaterial({color:0x4a6a3a,roughness:0.95});
+  const mSky   = new THREE.MeshStandardMaterial({color:0x8ab4d0,roughness:1,side:THREE.BackSide});
+
+  // Courtyard door frame in left wall of room 2
+  box(0.2,5,0.25,mDoorFrame,-16,2.5,18);
+  box(0.2,5,0.25,mDoorFrame,-16,2.5,28);
+  box(0.2,1.2,10.4,mWall,-16,5.4,23); // lintel piece above door
+
+  // Courtyard space: x=-16 to -44, z=12 to 34
+  const cX=-30, cZ=23, cW=28, cD=22;
+  // Sky dome (big box surrounds)
+  const skyMesh = new THREE.Mesh(new THREE.BoxGeometry(cW+4,20,cD+4), mSky);
+  skyMesh.position.set(-16-cW/2, 7, cZ); scene.add(skyMesh);
+  // Ground (grass)
+  box(cW,0.15,cD,mGrass, -16-cW/2,0,cZ);
+  // Stone path from door inward
+  const mPath = new THREE.MeshStandardMaterial({color:0xb0a898,roughness:0.85});
+  box(2,0.16,14,mPath,-17,0.01,cZ);
+  // Outer walls
+  box(0.3,5,cD,mStone,-16-cW,2.5,cZ);  // far left
+  box(cW,5,0.3,mStone,-16-cW/2,2.5,cZ-cD/2); // far back
+  box(cW,5,0.3,mStone,-16-cW/2,2.5,cZ+cD/2); // near wall
+  // Low stone benches
+  box(4,0.4,0.8,mStone,-26,0.2,17); box(4,0.4,0.8,mStone,-26,0.2,29);
+  box(4,0.4,0.8,mStone,-38,0.2,17); box(4,0.4,0.8,mStone,-38,0.2,29);
+  // Trees (simple cylinders + spheres)
+  const mBark = new THREE.MeshStandardMaterial({color:0x4a3520,roughness:0.9});
+  const mLeaf = new THREE.MeshStandardMaterial({color:0x3a5a2a,roughness:0.95});
+  function tree(x,z){
+    box(0.3,2.5,0.3,mBark,x,1.25,z);
+    const leaves=new THREE.Mesh(new THREE.SphereGeometry(1.4,8,6),mLeaf);
+    leaves.position.set(x,3.5,z); leaves.castShadow=true; scene.add(leaves);
+  }
+  tree(-22,15); tree(-22,31); tree(-38,15); tree(-38,31); tree(-30,14); tree(-30,32);
+  // Fountain (center)
+  box(2.5,0.25,2.5,mStone,-30,0.13,cZ);
+  box(1.6,0.5,1.6,mStone,-30,0.25,cZ);
+  box(0.3,1.2,0.3,mStone,-30,0.8,cZ);
+  const mWater=new THREE.MeshStandardMaterial({color:0x5588aa,roughness:0.1,metalness:0.2,transparent:true,opacity:0.7});
+  box(2.2,0.05,2.2,mWater,-30,0.27,cZ);
+  // Outdoor light
+  const sunOutdoor = new THREE.DirectionalLight(0xfff8e0,1.2);
+  sunOutdoor.position.set(-20,20,10); scene.add(sunOutdoor);
+  // Extend movement to courtyard
+  // (handled in clamp below: x down to -43, z 12-34)
+
+  // ── Secret Room ───────────────────────────────────────────────────────────
+  // Hidden door in back wall of room 2 (z=36), centre — appears as faint outline
+  const mSecretDoor = new THREE.MeshStandardMaterial({color:0xede9e0,roughness:0.95,emissive:0x2a2118,emissiveIntensity:0.04});
+  box(3,4.5,0.18,mSecretDoor,0,2.25,35.9); // very slightly proud of wall
+  // Secret room itself: x=-8 to 8, z=36 to 52
+  box(16,0.15,16,mFloor,  0,0,44);
+  box(16,0.12,16,mCeiling,0,6.12,44);
+  box(16,6,0.2,mWall,     0,3,52);
+  box(0.2,6,16,mWall,   -8,3,44);
+  box(0.2,6,16,mWall,    8,3,44);
+  // Dramatic lighting — single red-tinged overhead
+  const secLight = new THREE.PointLight(0xcc4422,1.8,18);
+  secLight.position.set(0,5.5,44); scene.add(secLight);
+  // Single central pedestal with something special
+  box(1.2,1.0,1.2,mStone,0,0.5,44);
+  box(1.3,0.07,1.3,mStone,0,1.04,44);
+  const mRelic = new THREE.MeshStandardMaterial({color:0xd4c090,roughness:0.05,metalness:0.9,emissive:0xaa8822,emissiveIntensity:0.5});
+  const relic = new THREE.Mesh(new THREE.OctahedronGeometry(0.35),mRelic);
+  relic.position.set(0,1.5,44); relic.castShadow=true; scene.add(relic);
+  sculpts.push(relic);
+  // Wall text on back wall
+  // Three artworks in secret room
+  artwork(-5,51.8,Math.PI,5,12); artwork(5,51.8,Math.PI,6,13);
+  artwork(-7.8,44,Math.PI/2,7,14); artwork(7.8,44,-Math.PI/2,0,15);
+
+  // Secret room trigger — at the secret door
+  const secretTrigger = new THREE.Vector3(0,1.65,35.5);
+  const SECRET_RADIUS = 2.5;
+  let secretUnlocked = false;
+  const SECRET_PASSWORD = 'quiet'; // the word
 
   // ── Dust Motes ───────────────────────────────────────────────────────────
   const MOTE_COUNT = 180;
@@ -765,6 +931,193 @@ function initVR() {
     notifEl.style.opacity = '1';
     setTimeout(()=>notifEl.style.opacity='0', 3000);
   }
+
+  // ── Museum Map ────────────────────────────────────────────────────────────
+  const mapBtn    = document.getElementById('map-btn');
+  const mapPanel  = document.getElementById('map-panel');
+  const mapCanvas = document.getElementById('map-canvas');
+  const mapCtx    = mapCanvas.getContext('2d');
+
+  // Map coordinate transform: world → canvas pixels
+  // World extents: x -44..16, z -22..52  →  canvas 308x220
+  function wx(x){ return (x+44)/(60)*308; }
+  function wz(z){ return (z+22)/(74)*220; }
+
+  function drawMap() {
+    mapCtx.clearRect(0,0,308,220);
+    mapCtx.fillStyle='#f5f0e8'; mapCtx.fillRect(0,0,308,220);
+    // Room 1
+    mapCtx.fillStyle='#ede9e0'; mapCtx.strokeStyle='#c0b8a8'; mapCtx.lineWidth=1;
+    mapCtx.fillRect(wx(-16),wz(-22),wx(16)-wx(-16),wz(10)-wz(-22));
+    mapCtx.strokeRect(wx(-16),wz(-22),wx(16)-wx(-16),wz(10)-wz(-22));
+    // Room 2
+    mapCtx.fillRect(wx(-16),wz(10),wx(16)-wx(-16),wz(36)-wz(10));
+    mapCtx.strokeRect(wx(-16),wz(10),wx(16)-wx(-16),wz(36)-wz(10));
+    // Courtyard
+    mapCtx.fillStyle='#dde8d8';
+    mapCtx.fillRect(wx(-44),wz(12),wx(-16)-wx(-44),wz(34)-wz(12));
+    mapCtx.strokeRect(wx(-44),wz(12),wx(-16)-wx(-44),wz(34)-wz(12));
+    // Secret room
+    mapCtx.fillStyle='#2a2118';
+    if(secretUnlocked){
+      mapCtx.fillStyle='#1a0808';
+      mapCtx.fillRect(wx(-8),wz(36),wx(8)-wx(-8),wz(52)-wz(36));
+      mapCtx.strokeStyle='#c8b068'; mapCtx.strokeRect(wx(-8),wz(36),wx(8)-wx(-8),wz(52)-wz(36));
+    } else {
+      // Show as unknown area
+      mapCtx.fillStyle='#c0b8a8';
+      mapCtx.fillRect(wx(-8),wz(36),wx(8)-wx(-8),8);
+    }
+    // Labels
+    mapCtx.fillStyle='#8a7f72'; mapCtx.font='8px Jost,sans-serif'; mapCtx.textAlign='center';
+    mapCtx.fillText('Main Gallery',wx(0),wz(-6));
+    mapCtx.fillText('Room II',wx(0),wz(20));
+    mapCtx.fillText('Courtyard',wx(-30),wz(23));
+    if(secretUnlocked) mapCtx.fillText('Inner Room',wx(0),wz(44));
+    // Artworks as red dots
+    const aw=[[-8,-21.8],[0,-21.8],[8,-21.8],[-15.8,-5],[-15.8,-14],[15.8,-5],[15.8,-14]];
+    mapCtx.fillStyle='#8b1a1a';
+    aw.forEach(([x,z])=>{ mapCtx.beginPath(); mapCtx.arc(wx(x),wz(z),2.5,0,Math.PI*2); mapCtx.fill(); });
+    // Guestbook
+    mapCtx.fillStyle='#8b1a1a'; mapCtx.beginPath(); mapCtx.arc(wx(3),wz(6.5),3,0,Math.PI*2); mapCtx.fill();
+    // Fountain
+    mapCtx.fillStyle='#5588aa'; mapCtx.beginPath(); mapCtx.arc(wx(-30),wz(23),4,0,Math.PI*2); mapCtx.fill();
+    // Player dot
+    mapCtx.fillStyle='#b5913a';
+    mapCtx.beginPath(); mapCtx.arc(wx(camera.position.x),wz(camera.position.z),4,0,Math.PI*2); mapCtx.fill();
+    // Player direction arrow
+    const dx=Math.sin(euler.y)*8, dz=Math.cos(euler.y)*8;
+    mapCtx.strokeStyle='#b5913a'; mapCtx.lineWidth=1.5;
+    mapCtx.beginPath(); mapCtx.moveTo(wx(camera.position.x),wz(camera.position.z));
+    mapCtx.lineTo(wx(camera.position.x)+dx, wz(camera.position.z)-dz); mapCtx.stroke();
+    // Remote players
+    Object.values(remotePlayers).forEach(rp=>{
+      mapCtx.fillStyle='#5b7fa6';
+      mapCtx.beginPath(); mapCtx.arc(wx(rp.group.position.x),wz(rp.group.position.z),3,0,Math.PI*2); mapCtx.fill();
+    });
+  }
+
+  document.addEventListener('pointerlockchange',()=>{
+    const isLocked = document.pointerLockElement===renderer.domElement;
+    if(isLocked) mapBtn.style.display='block';
+    if(!isLocked) mapPanel.classList.remove('open');
+  });
+  mapBtn.addEventListener('click',()=>{
+    mapPanel.classList.toggle('open');
+    if(mapPanel.classList.contains('open')) drawMap();
+  });
+
+  // ── Secret Room ───────────────────────────────────────────────────────────
+  const secretPanel  = document.getElementById('secret-panel');
+  const secretPrompt = document.getElementById('secret-prompt');
+  let secretOpen = false;
+
+  function openSecretPanel() {
+    secretOpen = true;
+    document.exitPointerLock();
+    secretPanel.classList.add('open');
+    document.getElementById('secret-input').value='';
+    document.getElementById('secret-error').textContent='';
+    setTimeout(()=>document.getElementById('secret-input').focus(),100);
+  }
+  function closeSecretPanel() {
+    secretOpen = false;
+    secretPanel.classList.remove('open');
+    renderer.domElement.requestPointerLock();
+  }
+  function trySecret() {
+    const val = document.getElementById('secret-input').value.trim().toLowerCase();
+    if(val===SECRET_PASSWORD){
+      secretUnlocked = true;
+      closeSecretPanel();
+      showNotification('The door yields to you.');
+    } else {
+      document.getElementById('secret-error').textContent='The room does not open.';
+      document.getElementById('secret-input').value='';
+    }
+  }
+  document.getElementById('secret-submit').addEventListener('click',trySecret);
+  document.getElementById('secret-close').addEventListener('click',closeSecretPanel);
+  document.getElementById('secret-input').addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Enter') trySecret();
+    if(e.key==='Escape') closeSecretPanel();
+  });
+
+  // ── Mobile Controls ───────────────────────────────────────────────────────
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || ('ontouchstart' in window && innerWidth<900);
+  if(isMobile){
+    document.getElementById('mobile-controls').style.display='block';
+    document.querySelector('.detect-hint').textContent='mobile detected · use on-screen controls';
+    // No pointer lock on mobile — use touch look zone instead
+    blocker.addEventListener('click',()=>{
+      document.getElementById('mobile-controls').style.display='block';
+      blocker.style.display='none';
+      crosshair.style.display='none';
+      hud.style.display='block';
+      vcEl.style.display='block';
+      musicBtn.style.display='block';
+      mapBtn.style.display='block';
+      uploadBtn.style.display='block';
+      adminBtn.style.display='block';
+      locked=true; // treat as always locked on mobile
+      startMusic();
+    },{once:true});
+  }
+
+  // Joystick
+  const joystickZone  = document.getElementById('joystick-zone');
+  const joystickThumb = document.getElementById('joystick-thumb');
+  const mobileMove = {x:0,z:0};
+  let joystickId=null, joystickOrigin={x:0,y:0};
+  joystickZone.addEventListener('touchstart',e=>{
+    const t=e.changedTouches[0];
+    joystickId=t.identifier;
+    joystickOrigin={x:t.clientX,y:t.clientY};
+  },{passive:true});
+  window.addEventListener('touchmove',e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier!==joystickId) continue;
+      const dx=t.clientX-joystickOrigin.x, dy=t.clientY-joystickOrigin.y;
+      const dist=Math.min(Math.sqrt(dx*dx+dy*dy),40);
+      const ang=Math.atan2(dy,dx);
+      const nx=Math.cos(ang)*dist/40, ny=Math.sin(ang)*dist/40;
+      joystickThumb.style.transform=`translate(calc(-50% + ${nx*36}px), calc(-50% + ${ny*36}px))`;
+      mobileMove.x=nx; mobileMove.z=ny;
+    }
+  },{passive:true});
+  window.addEventListener('touchend',e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier!==joystickId) continue;
+      joystickThumb.style.transform='translate(-50%,-50%)';
+      mobileMove.x=0; mobileMove.z=0; joystickId=null;
+    }
+  },{passive:true});
+
+  // Look zone
+  const lookZone=document.getElementById('look-zone');
+  let lookId=null, lastLook={x:0,y:0};
+  lookZone.addEventListener('touchstart',e=>{
+    const t=e.changedTouches[0]; lookId=t.identifier; lastLook={x:t.clientX,y:t.clientY};
+  },{passive:true});
+  window.addEventListener('touchmove',e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier!==lookId) continue;
+      const dx=t.clientX-lastLook.x, dy=t.clientY-lastLook.y;
+      euler.setFromQuaternion(camera.quaternion);
+      euler.y-=dx*0.004; euler.x-=dy*0.004;
+      euler.x=Math.max(-Math.PI/2.3,Math.min(Math.PI/2.3,euler.x));
+      camera.quaternion.setFromEuler(euler);
+      lastLook={x:t.clientX,y:t.clientY};
+    }
+  },{passive:true});
+  window.addEventListener('touchend',e=>{for(const t of e.changedTouches) if(t.identifier===lookId) lookId=null;},{passive:true});
+
+  // Jump & sprint buttons
+  document.getElementById('jump-btn').addEventListener('touchstart',e=>{e.preventDefault();if(onGround){vertVel=JUMP;onGround=false;}},{passive:false});
+  let mobileSprint=false;
+  document.getElementById('sprint-btn').addEventListener('touchstart',e=>{e.preventDefault();mobileSprint=true;},{passive:false});
+  document.getElementById('sprint-btn').addEventListener('touchend',()=>mobileSprint=false);
 
   // ── Chat bubbles ─────────────────────────────────────────────────────────
   function showChatBubble(group, text) {
@@ -939,12 +1292,16 @@ function initVR() {
   const keys={};
   document.addEventListener('keydown', e => {
     keys[e.code]=true;
-    if (e.code==='KeyE' && !gbOpen && !chatOpen) {
+    if (e.code==='KeyE' && !gbOpen && !chatOpen && !secretOpen) {
       const dist = camera.position.distanceTo(gbTrigger);
       if (dist < GB_RADIUS) openGuestbook();
+      const distS = camera.position.distanceTo(secretTrigger);
+      if (distS < SECRET_RADIUS && !secretUnlocked) openSecretPanel();
     }
-    if (e.code==='KeyT' && locked && !gbOpen && !chatOpen) {
-      openChat();
+    if (e.code==='KeyT' && locked && !gbOpen && !chatOpen && !secretOpen) openChat();
+    if (e.code==='KeyM' && locked) {
+      mapPanel.classList.toggle('open');
+      if(mapPanel.classList.contains('open')) drawMap();
     }
   });
   document.addEventListener('keyup', e => keys[e.code]=false);
@@ -964,17 +1321,27 @@ function initVR() {
     requestAnimationFrame(animate);
     const dt=clock.getDelta(), t=clock.getElapsedTime();
 
-    if (locked && !gbOpen && !chatOpen) {
-      const speed=(keys['ShiftLeft']||keys['ShiftRight'])?7:3.5;
+    if (locked && !gbOpen && !chatOpen && !secretOpen) {
+      const zooping = performance.now() < zoopUntil;
+      const speed = zooping ? 22 : (keys['ShiftLeft']||keys['ShiftRight']||mobileSprint) ? 7 : 3.5;
       const dir=new THREE.Vector3();
       if(keys['KeyW']||keys['ArrowUp'])    dir.z-=1;
       if(keys['KeyS']||keys['ArrowDown'])  dir.z+=1;
       if(keys['KeyA']||keys['ArrowLeft'])  dir.x-=1;
       if(keys['KeyD']||keys['ArrowRight']) dir.x+=1;
-      const moved = dir.lengthSq() > 0;
+      if(mobileMove.x||mobileMove.z){ dir.x+=mobileMove.x; dir.z+=mobileMove.z; }
       dir.normalize().applyEuler(new THREE.Euler(0,euler.y,0));
-      camera.position.x=Math.max(-14.5,Math.min(14.5,camera.position.x+dir.x*speed*dt));
-      camera.position.z=Math.max(-21.5,Math.min(35.5, camera.position.z+dir.z*speed*dt));
+
+      const nx = camera.position.x + dir.x*speed*dt;
+      const nz = camera.position.z + dir.z*speed*dt;
+
+      // Courtyard: accessible through left wall of room2 when z 12-34
+      const goingCourtyard = nz>=12 && nz<=34 && nx<-15.5;
+      // Secret room: only if unlocked
+      const goingSecret = nz>35.5 && Math.abs(nx)<7.5 && secretUnlocked;
+
+      camera.position.x = Math.max(goingCourtyard?-43:-14.5, Math.min(14.5, nx));
+      camera.position.z = Math.max(-21.5, Math.min(goingSecret?51.5:35.5, nz));
 
       if(keys['Space']&&onGround){vertVel=JUMP;onGround=false;}
       vertVel+=GRAV*dt;
@@ -990,13 +1357,16 @@ function initVR() {
 
       // Guestbook proximity prompt
       const distGB = camera.position.distanceTo(gbTrigger);
-      if (distGB < GB_RADIUS) {
-        gbPrompt.style.display='block';
-        gbPrompt.style.left='50%';
-        gbPrompt.style.top='58%';
-      } else {
-        gbPrompt.style.display='none';
-      }
+      gbPrompt.style.display = distGB<GB_RADIUS ? 'block' : 'none';
+      if(distGB<GB_RADIUS){ gbPrompt.style.left='50%'; gbPrompt.style.top='58%'; }
+
+      // Secret room proximity prompt
+      const distSec = camera.position.distanceTo(secretTrigger);
+      secretPrompt.style.display = (!secretUnlocked && distSec<SECRET_RADIUS) ? 'block' : 'none';
+      if(distSec<SECRET_RADIUS){ secretPrompt.style.left='50%'; secretPrompt.style.top='52%'; }
+
+      // Redraw map if open
+      if(mapPanel.classList.contains('open')) drawMap();
     }
 
     // ── Admin Light Panel ────────────────────────────────────────────────────
