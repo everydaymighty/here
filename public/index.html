@@ -209,7 +209,7 @@
     <div id="blocker-hint">[ Click to Enter ]</div>
   </div>
   <div id="crosshair"></div>
-  <div id="hud">V free mouse · Tab inventory · WASD · Space jump · E interact · T chat · M map</div>
+  <div id="hud">V free mouse · Tab inventory · WASD · Space jump · E interact · T chat · M map · Side door → Garden</div>
   <div id="visitor-count">1 visitor</div>
   <button id="music-btn">♪ music on</button>
   <div id="freelook-badge">Free Look — Click canvas or press V to re-lock</div>
@@ -271,20 +271,23 @@
 
   <!-- ADMIN -->
   <div id="admin-panel">
-    <div class="adm-header"><span class="adm-title">Light Control</span><button class="adm-close" id="adm-close">✕</button></div>
-    <div class="adm-row"><label>Ambient</label><input type="range" id="adm-ambient" min="0" max="2" step="0.01" value="0.5"/><span class="adm-val" id="adm-ambient-val">50%</span></div>
-    <div class="adm-row"><label>Sunlight</label><input type="range" id="adm-sun" min="0" max="2" step="0.01" value="0.5"/><span class="adm-val" id="adm-sun-val">50%</span></div>
+    <div class="adm-header"><span class="adm-title">Admin Controls</span><button class="adm-close" id="adm-close">✕</button></div>
+    <div class="adm-row"><label>Ambient</label><input type="range" id="adm-ambient" min="0" max="2" step="0.01" value="0.85"/><span class="adm-val" id="adm-ambient-val">85%</span></div>
+    <div class="adm-row"><label>Sunlight</label><input type="range" id="adm-sun" min="0" max="2" step="0.01" value="1.2"/><span class="adm-val" id="adm-sun-val">60%</span></div>
     <div class="adm-row"><label>Pendants</label><input type="range" id="adm-pendant" min="0" max="5" step="0.1" value="2"/><span class="adm-val" id="adm-pendant-val">2.0</span></div>
-    <div class="adm-row"><label>Fog distance</label><input type="range" id="adm-fog" min="10" max="100" step="1" value="50"/><span class="adm-val" id="adm-fog-val">50</span></div>
-    <div class="adm-row"><label>Sun color</label><input type="color" id="adm-sun-color" value="#fff5e8" class="adm-color"/></div>
+    <div class="adm-row"><label>Fog distance</label><input type="range" id="adm-fog" min="10" max="120" step="1" value="55"/><span class="adm-val" id="adm-fog-val">55</span></div>
+    <div class="adm-row"><label>Sun color</label><input type="color" id="adm-sun-color" value="#fff0d0" class="adm-color"/></div>
     <div class="adm-presets">
       <button class="adm-preset" data-preset="noon">Noon</button>
       <button class="adm-preset" data-preset="golden">Golden</button>
       <button class="adm-preset" data-preset="candle">Candlelit</button>
       <button class="adm-preset" data-preset="night">Night</button>
     </div>
+    <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid rgba(42,33,24,0.15);">
+      <button class="adm-preset" id="adm-freeroam-btn" style="width:100%;text-align:center;">⬡ Free Roam OFF</button>
+    </div>
   </div>
-  <button id="admin-btn">⚙ Lights</button>
+  <button id="admin-btn">⚙ Admin</button>
 
   <!-- CHAT -->
   <div id="chat-input-wrap">
@@ -396,7 +399,7 @@ function initVR(){
   // Scene
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0xede9e0);
-  scene.fog=new THREE.Fog(0xe8e3d8,18,50);
+  scene.fog=new THREE.Fog(0xe8e3d8,22,55);
   const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,0.1,200);
   camera.position.set(0,1.65,8);
   const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -441,9 +444,13 @@ function initVR(){
   const mFrame=new THREE.MeshStandardMaterial({color:0x8b6914,roughness:0.3,metalness:0.7});
   const mArch=new THREE.MeshStandardMaterial({color:0xd8d0c0,roughness:0.6,metalness:0.1});
 
-  // Lights
-  const ambLight=new THREE.AmbientLight(0xfff8f0,0.5);scene.add(ambLight);
-  const sun=new THREE.DirectionalLight(0xfff5e8,0.5);sun.position.set(8,18,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-30;sun.shadow.camera.right=30;sun.shadow.camera.top=25;sun.shadow.camera.bottom=-25;scene.add(sun);
+  // Lights — improved
+  const ambLight=new THREE.AmbientLight(0xfff8f0,0.85);scene.add(ambLight);
+  // Hemisphere light: warm sky above, cool bounce below
+  const hemi=new THREE.HemisphereLight(0xfff5d0,0xd0c8a0,0.6);scene.add(hemi);
+  const sun=new THREE.DirectionalLight(0xfff0d0,1.2);sun.position.set(12,22,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-35;sun.shadow.camera.right=35;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-30;sun.shadow.bias=-0.0005;scene.add(sun);
+  // Fill light from opposite side, cooler tone
+  const fillLight=new THREE.DirectionalLight(0xd0e8ff,0.35);fillLight.position.set(-10,8,-15);scene.add(fillLight);
 
   function box(w,h,d,mat,x,y,z,rx=0,ry=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.rotation.set(rx,ry,0);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
 
@@ -665,6 +672,153 @@ function initVR(){
   box(0.03,0.55,0.03,mMolding,3,1.33,6.5);
   const gbTrigger=new THREE.Vector3(3,1.65,6.5),GB_RADIUS=2.5;
 
+  // ── SIDE DOOR (left wall, leads to sculpture garden) ──────────────────────
+  // Door frame opening cut into left wall at z=0 (carved by leaving a gap, adding frame pieces)
+  const doorFrameMat=new THREE.MeshStandardMaterial({color:0xb8a070,roughness:0.4,metalness:0.3});
+  // Door frame sides and top
+  box(0.18,3.0,0.25,doorFrameMat,-15.92,1.5,0);   // left jamb
+  box(0.18,3.0,0.25,doorFrameMat,-15.92,1.5,2.2); // right jamb
+  box(0.18,0.22,2.38,doorFrameMat,-15.92,3.06,1.1);// lintel
+  // Door sign
+  const doorSignC=document.createElement('canvas');doorSignC.width=256;doorSignC.height=64;
+  const dsCtx=doorSignC.getContext('2d');dsCtx.fillStyle='#d4c090';dsCtx.fillRect(0,0,256,64);
+  dsCtx.font='italic 300 20px "Cormorant Garamond",serif';dsCtx.fillStyle='#2a2118';dsCtx.textAlign='center';dsCtx.fillText('Sculpture Garden',128,28);
+  dsCtx.font='200 13px Jost';dsCtx.fillStyle='#8a7f72';dsCtx.fillText('Through the side door →',128,50);
+  const doorSign=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.35,0.04),new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(doorSignC),roughness:0.4}));
+  doorSign.position.set(-14.5,2.8,1.1);scene.add(doorSign);
+
+  // ── SCULPTURE GARDEN (outdoor space off left wall) ────────────────────────
+  const gardenOffX=-16; // garden is to the left of X=-16
+  // Garden ground — natural stone/grass
+  const gardenGroundMat=new THREE.MeshStandardMaterial({color:0x6a7a5a,roughness:1.0,metalness:0});
+  const gardenGround=new THREE.Mesh(new THREE.BoxGeometry(28,0.15,22),gardenGroundMat);
+  gardenGround.position.set(-29,0,1);gardenGround.receiveShadow=true;scene.add(gardenGround);
+  // Stone path
+  const pathMat=new THREE.MeshStandardMaterial({color:0xb8a888,roughness:0.85,metalness:0.05});
+  // Main path from door going left
+  for(let px=0;px<10;px++){
+    const pstone=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.06,1.1),pathMat);
+    pstone.position.set(-16.8-px*1.6,0.085,1.1+Math.sin(px*0.6)*0.3);
+    pstone.rotation.y=Math.random()*0.15;
+    pstone.receiveShadow=true;scene.add(pstone);
+  }
+  // Circular path around central fountain
+  for(let a=0;a<16;a++){
+    const ang=a/16*Math.PI*2;
+    const ps=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.06,0.9),pathMat);
+    ps.position.set(-29+Math.cos(ang)*4.5,0.085,1+Math.sin(ang)*4.5);
+    ps.rotation.y=ang;ps.receiveShadow=true;scene.add(ps);
+  }
+
+  // Garden walls (stone, lower than museum)
+  const gardenWallMat=new THREE.MeshStandardMaterial({color:0x9a8e78,roughness:0.9,metalness:0.05});
+  // Back wall
+  box(28,2.2,0.3,gardenWallMat,-29,1.1,-9.5);
+  // Far left wall
+  box(0.3,2.2,22,gardenWallMat,-43,1.1,1);
+  // South wall (with gap for path entrance from museum at z≈1)
+  box(12,2.2,0.3,gardenWallMat,-23,1.1,12.2);
+  box(10,2.2,0.3,gardenWallMat,-37,1.1,12.2);
+  // Wall cap stones
+  box(28,0.2,0.5,pathMat,-29,2.3,-9.5);
+  box(0.5,0.2,22,pathMat,-43,2.3,1);
+  box(12,0.2,0.5,pathMat,-23,2.3,12.2);
+  box(10,0.2,0.5,pathMat,-37,2.3,12.2);
+
+  // Garden sky — open sky box patch (bright blue, only in garden area)
+  const skyMat=new THREE.MeshBasicMaterial({color:0x8fb8d8,side:THREE.BackSide});
+  const gardenSky=new THREE.Mesh(new THREE.BoxGeometry(28,16,22),skyMat);
+  gardenSky.position.set(-29,8,1);scene.add(gardenSky);
+
+  // Central fountain
+  const stoneDarkMat=new THREE.MeshStandardMaterial({color:0x7a6e58,roughness:0.8,metalness:0.1});
+  const waterMat=new THREE.MeshStandardMaterial({color:0x4a7a9b,roughness:0.1,metalness:0.3,transparent:true,opacity:0.75});
+  // Basin base
+  const fbas=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,0.35,24),stoneDarkMat);fbas.position.set(-29,0.175,1);fbas.castShadow=true;fbas.receiveShadow=true;scene.add(fbas);
+  // Basin rim
+  const frim=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.16,8,32),stoneDarkMat);frim.rotation.x=Math.PI/2;frim.position.set(-29,0.35,1);scene.add(frim);
+  // Water surface
+  const fwater=new THREE.Mesh(new THREE.CylinderGeometry(2.0,2.0,0.05,24),waterMat);fwater.position.set(-29,0.3,1);scene.add(fwater);
+  // Center column
+  const fcol=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,1.6,12),stoneDarkMat);fcol.position.set(-29,0.98,1);fcol.castShadow=true;scene.add(fcol);
+  // Upper bowl
+  const fbowl=new THREE.Mesh(new THREE.SphereGeometry(0.65,16,8,0,Math.PI*2,0,Math.PI/2),stoneDarkMat);fbowl.position.set(-29,1.6,1);scene.add(fbowl);
+  // Fountain glow / water shimmer
+  const fountainLight=new THREE.PointLight(0x7ab8d8,1.8,8);fountainLight.position.set(-29,1.2,1);scene.add(fountainLight);
+
+  // Garden sculptures on pedestals
+  const gardenPedestalMat=new THREE.MeshStandardMaterial({color:0x9a8e78,roughness:0.7,metalness:0.1});
+  const gardenSculptMat=new THREE.MeshStandardMaterial({color:0xd8cfa8,roughness:0.3,metalness:0.6});
+  const gardenBronzeMat=new THREE.MeshStandardMaterial({color:0x8a6a40,roughness:0.4,metalness:0.7});
+  const gardenSculptData=[
+    {x:-22,z:-4, h:0.9, type:'torus'},
+    {x:-22,z: 6, h:1.1, type:'icosa'},
+    {x:-36,z:-4, h:0.85,type:'cone'},
+    {x:-36,z: 6, h:1.0, type:'sphere'},
+    {x:-29,z:-7, h:1.2, type:'abstract'},
+    {x:-29,z: 9, h:0.8, type:'ring'},
+  ];
+  gardenSculptData.forEach(({x,z,h,type})=>{
+    // Pedestal
+    const ped=new THREE.Mesh(new THREE.BoxGeometry(1.0,h,1.0),gardenPedestalMat);
+    ped.position.set(x,h/2,z);ped.castShadow=true;ped.receiveShadow=true;scene.add(ped);
+    const pedTop=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.08,1.2),stoneDarkMat);
+    pedTop.position.set(x,h+0.04,z);scene.add(pedTop);
+    // Sculpture
+    let geo;
+    if(type==='torus')geo=new THREE.TorusGeometry(0.38,0.12,12,24);
+    else if(type==='icosa')geo=new THREE.IcosahedronGeometry(0.35,0);
+    else if(type==='cone'){geo=new THREE.ConeGeometry(0.22,0.7,6);}
+    else if(type==='sphere')geo=new THREE.SphereGeometry(0.3,12,10);
+    else if(type==='abstract')geo=new THREE.OctahedronGeometry(0.38,1);
+    else geo=new THREE.TorusKnotGeometry(0.22,0.08,64,8);
+    const mat=(type==='icosa'||type==='torus')?gardenBronzeMat:gardenSculptMat;
+    const sculpt=new THREE.Mesh(geo,mat);
+    sculpt.position.set(x,h+0.08+(type==='torus'?0.12:0.3),z);
+    sculpt.castShadow=true;scene.add(sculpt);
+    sculpts.push(sculpt);
+    // Small info plaque
+    const plaqMat=new THREE.MeshStandardMaterial({color:0xd4c090,roughness:0.5,metalness:0.3});
+    const plaq=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.18,0.04),plaqMat);
+    plaq.position.set(x,0.2,z+0.52);scene.add(plaq);
+  });
+
+  // Hedges / topiaries along garden walls
+  const hedgeMat=new THREE.MeshStandardMaterial({color:0x2d5a27,roughness:1.0,metalness:0});
+  const topMat=new THREE.MeshStandardMaterial({color:0x3a7030,roughness:0.95,metalness:0});
+  // Hedge rows along back and sides
+  for(let hx=-43;hx<=-18;hx+=2.5){
+    const hg=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.5,1.0),hedgeMat);
+    hg.position.set(hx,0.82,-9);hg.castShadow=true;hg.receiveShadow=true;scene.add(hg);
+  }
+  for(let hz=-9;hz<=12;hz+=2.5){
+    const hg=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.5,2.2),hedgeMat);
+    hg.position.set(-42.5,0.82,hz);hg.castShadow=true;hg.receiveShadow=true;scene.add(hg);
+  }
+  // Topiary balls at corners
+  const topPos=[[-22,-8],[-36,-8],[-22,10],[-36,10]];
+  topPos.forEach(([tx,tz])=>{
+    const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.12,1.2,8),gardenPedestalMat);
+    stem.position.set(tx,0.6,tz);stem.castShadow=true;scene.add(stem);
+    const ball=new THREE.Mesh(new THREE.SphereGeometry(0.45,12,10),topMat);
+    ball.position.set(tx,1.65,tz);ball.castShadow=true;scene.add(ball);
+  });
+  // A few taller topiaries
+  [[-20,1],[-38,1]].forEach(([tx,tz])=>{
+    const cone=new THREE.Mesh(new THREE.ConeGeometry(0.55,2.2,8),topMat);
+    cone.position.set(tx,1.1,tz);cone.castShadow=true;scene.add(cone);
+    const coneBase=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.15,0.5,8),gardenPedestalMat);
+    coneBase.position.set(tx,0.25,tz);scene.add(coneBase);
+  });
+
+  // Garden sunlight (brighter, more blue-sky feel)
+  const gardenSun=new THREE.DirectionalLight(0xfff8e8,1.4);
+  gardenSun.position.set(-20,25,5);gardenSun.castShadow=true;
+  gardenSun.shadow.mapSize.set(1024,1024);gardenSun.shadow.camera.left=-25;gardenSun.shadow.camera.right=5;gardenSun.shadow.camera.top=15;gardenSun.shadow.camera.bottom=-15;
+  scene.add(gardenSun);
+  // Garden ambient bounce (greener, sky-like)
+  const gardenAmb=new THREE.HemisphereLight(0xc8e0f0,0x6a9060,0.7);scene.add(gardenAmb);
+
   // NPC ghost
   const npcGroup=new THREE.Group();
   const nc=0x8ab4d0;
@@ -695,13 +849,22 @@ function initVR(){
 
   // Map
   const mapBtn=document.getElementById('map-btn'),mapPanel=document.getElementById('map-panel'),mapCanvas=document.getElementById('map-canvas'),mapCtx=mapCanvas.getContext('2d');
-  function wx(x){return(x+17)/(34)*308;}function wz(z){return(z+22)/(34)*180;}
+  function wx(x){return(x+45)/(60)*308;}function wz(z){return(z+22)/(34)*180;}
   function drawMap(){
     mapCtx.clearRect(0,0,308,180);mapCtx.fillStyle='#f5f0e8';mapCtx.fillRect(0,0,308,180);
+    // Museum interior
     mapCtx.fillStyle='#ede9e0';mapCtx.strokeStyle='#c0b8a8';mapCtx.lineWidth=1;
     mapCtx.fillRect(wx(-16),wz(-22),wx(16)-wx(-16),wz(10)-wz(-22));mapCtx.strokeRect(wx(-16),wz(-22),wx(16)-wx(-16),wz(10)-wz(-22));
+    // Garden (green area)
+    mapCtx.fillStyle='rgba(60,100,50,0.25)';
+    mapCtx.fillRect(wx(-43),wz(-10),wx(-16)-wx(-43),wz(12)-wz(-10));
+    mapCtx.strokeStyle='#5a7a4a';mapCtx.strokeRect(wx(-43),wz(-10),wx(-16)-wx(-43),wz(12)-wz(-10));
+    // Fountain marker
+    mapCtx.fillStyle='rgba(74,122,155,0.6)';mapCtx.beginPath();mapCtx.arc(wx(-29),wz(1),3.5,0,Math.PI*2);mapCtx.fill();
     // Carpet
     mapCtx.fillStyle='rgba(45,90,39,0.3)';mapCtx.fillRect(wx(-5),wz(-19),wx(5)-wx(-5),wz(7)-wz(-19));
+    // Door indicator
+    mapCtx.fillStyle='#b5913a';mapCtx.fillRect(wx(-16)-2,wz(0),4,wz(2.2)-wz(0));
     // Artworks
     mapCtx.fillStyle='#8b1a1a';
     [[-8,-21.8],[0,-21.8],[8,-21.8],[-15.8,-5],[-15.8,-14],[15.8,-5],[15.8,-14]].forEach(([x,z])=>{mapCtx.beginPath();mapCtx.arc(wx(x),wz(z),2.5,0,Math.PI*2);mapCtx.fill();});
@@ -763,7 +926,7 @@ function initVR(){
   let inventoryOpen=false;
   const inventoryPanel=document.getElementById('inventory-panel');
   const colorNames={'#b5913a':'Gold','#5b7fa6':'Blue','#8b1a1a':'Crimson','#3a6b4a':'Forest','#7a5fa6':'Violet','#8a7f72':'Stone'};
-  function openInventory(){inventoryOpen=true;document.exitPointerLock();document.getElementById('inv-name').textContent=playerName;document.getElementById('inv-swatch').style.background=avatarColor;document.getElementById('inv-color-name').textContent=colorNames[avatarColor]||'Custom';const n=Object.keys(remotePlayers).length+1;document.getElementById('inv-visitors').textContent=n;const x=camera.position.x,z=camera.position.z;let loc='Main Gallery';if(z>5)loc='Entrance';document.getElementById('inv-location').textContent=loc;inventoryPanel.classList.add('open');}
+  function openInventory(){inventoryOpen=true;document.exitPointerLock();document.getElementById('inv-name').textContent=playerName;document.getElementById('inv-swatch').style.background=avatarColor;document.getElementById('inv-color-name').textContent=colorNames[avatarColor]||'Custom';const n=Object.keys(remotePlayers).length+1;document.getElementById('inv-visitors').textContent=n;const x=camera.position.x,z=camera.position.z;let loc='Main Gallery';if(z>5)loc='Entrance';if(x<-15.5)loc='Sculpture Garden';document.getElementById('inv-location').textContent=loc;inventoryPanel.classList.add('open');}
   function closeInventory(){inventoryOpen=false;inventoryPanel.classList.remove('open');renderer.domElement.requestPointerLock();}
 
   // Admin
@@ -777,8 +940,17 @@ function initVR(){
   document.getElementById('adm-pendant').addEventListener('input',e=>{const v=parseFloat(e.target.value);pendantLights.forEach(p=>p.light.intensity=v);document.getElementById('adm-pendant-val').textContent=v.toFixed(1);});
   document.getElementById('adm-fog').addEventListener('input',e=>{const v=parseInt(e.target.value);if(scene.fog){scene.fog.far=v;scene.fog.near=v*0.33;}document.getElementById('adm-fog-val').textContent=v;});
   document.getElementById('adm-sun-color').addEventListener('input',e=>{sun.color.set(e.target.value);});
-  const presets={noon:{amb:0.85,sun:0.8,pend:2.5,fog:60,sunCol:'#ffffff'},golden:{amb:0.55,sun:0.9,pend:3.5,fog:40,sunCol:'#ffb347'},candle:{amb:0.25,sun:0.1,pend:4.5,fog:25,sunCol:'#cc7722'},night:{amb:0.08,sun:0.05,pend:1.5,fog:18,sunCol:'#334466'}};
+  const presets={noon:{amb:1.1,sun:1.4,pend:2.0,fog:70,sunCol:'#fffae0'},golden:{amb:0.65,sun:1.2,pend:3.5,fog:45,sunCol:'#ffb347'},candle:{amb:0.28,sun:0.1,pend:4.5,fog:25,sunCol:'#cc7722'},night:{amb:0.1,sun:0.05,pend:1.5,fog:20,sunCol:'#334466'}};
   document.querySelectorAll('.adm-preset').forEach(btn=>{btn.addEventListener('click',()=>{const p=presets[btn.dataset.preset];if(!p)return;ambLight.intensity=p.amb;sun.intensity=p.sun;sun.color.set(p.sunCol);pendantLights.forEach(pl=>pl.light.intensity=p.pend);if(scene.fog){scene.fog.far=p.fog;scene.fog.near=p.fog*0.33;}document.getElementById('adm-ambient').value=p.amb;document.getElementById('adm-sun').value=p.sun;document.getElementById('adm-pendant').value=p.pend;document.getElementById('adm-fog').value=p.fog;document.getElementById('adm-sun-color').value=p.sunCol;document.getElementById('adm-ambient-val').textContent=pct(p.amb,2);document.getElementById('adm-sun-val').textContent=pct(p.sun,2);document.getElementById('adm-pendant-val').textContent=p.pend.toFixed(1);document.getElementById('adm-fog-val').textContent=p.fog;});});
+  // Free-roam toggle
+  const freeRoamBtn=document.getElementById('adm-freeroam-btn');
+  freeRoamBtn.addEventListener('click',()=>{
+    adminFreeRoam=!adminFreeRoam;
+    freeRoamBtn.textContent=adminFreeRoam?'⬡ Free Roam ON (no-clip)':'⬡ Free Roam OFF';
+    freeRoamBtn.style.background=adminFreeRoam?'var(--gold)':'transparent';
+    freeRoamBtn.style.color=adminFreeRoam?'var(--warm)':'var(--ink)';
+    showNotif(adminFreeRoam?'Free roam enabled — fly anywhere':'Free roam disabled');
+  });
 
   // Keys
   const keys={};
@@ -800,6 +972,8 @@ function initVR(){
     if(e.code==='KeyM'&&(locked||freelookMode)){mapPanel.classList.toggle('open');if(mapPanel.classList.contains('open'))drawMap();}
   });
   document.addEventListener('keyup',e=>keys[e.code]=false);
+
+  let adminFreeRoam=false;
 
   let vertVel=0,onGround=true;
   const GRAV=-18,JUMP=6,HEIGHT=1.65;
@@ -824,11 +998,27 @@ function initVR(){
       if(keys['KeyA']||keys['ArrowLeft'])dir.x-=1;
       if(keys['KeyD']||keys['ArrowRight'])dir.x+=1;
       dir.normalize().applyEuler(new THREE.Euler(0,euler.y,0));
-      camera.position.x=Math.max(-14.5,Math.min(14.5,camera.position.x+dir.x*speed*dt));
-      camera.position.z=Math.max(-21.5,Math.min(9.5,camera.position.z+dir.z*speed*dt));
-      if(keys['Space']&&onGround){vertVel=JUMP;onGround=false;}
-      vertVel+=GRAV*dt;camera.position.y+=vertVel*dt;
-      if(camera.position.y<=HEIGHT){camera.position.y=HEIGHT;vertVel=0;onGround=true;}
+      if(adminFreeRoam){
+        // Free-roam: full 3D no-clip flight
+        const fwdDir=new THREE.Vector3();camera.getWorldDirection(fwdDir);
+        const rightDir=new THREE.Vector3().crossVectors(fwdDir,new THREE.Vector3(0,1,0)).normalize();
+        if(keys['KeyW']||keys['ArrowUp'])camera.position.addScaledVector(fwdDir,speed*dt);
+        if(keys['KeyS']||keys['ArrowDown'])camera.position.addScaledVector(fwdDir,-speed*dt);
+        if(keys['KeyA']||keys['ArrowLeft'])camera.position.addScaledVector(rightDir,-speed*dt);
+        if(keys['KeyD']||keys['ArrowRight'])camera.position.addScaledVector(rightDir,speed*dt);
+        if(keys['Space'])camera.position.y+=speed*dt;
+        if(keys['ShiftLeft']||keys['ShiftRight'])camera.position.y-=speed*dt;
+      } else {
+        camera.position.x=Math.max(-44.5,Math.min(14.5,camera.position.x+dir.x*speed*dt));
+        camera.position.z=Math.max(-21.5,Math.min(9.5,camera.position.z+dir.z*speed*dt));
+        // Block the wall gap (only allow garden access through door at z 0..2.2)
+        if(camera.position.x<-15.5&&(camera.position.z<-0.3||camera.position.z>2.5)){
+          camera.position.x=Math.max(-15.5,camera.position.x);
+        }
+        if(keys['Space']&&onGround){vertVel=JUMP;onGround=false;}
+        vertVel+=GRAV*dt;camera.position.y+=vertVel*dt;
+        if(camera.position.y<=HEIGHT){camera.position.y=HEIGHT;vertVel=0;onGround=true;}
+      }
       moveTimer+=dt;
       if(moveTimer>0.05){socket.emit('player:move',{x:camera.position.x,y:camera.position.y,z:camera.position.z,ry:euler.y});moveTimer=0;}
 
