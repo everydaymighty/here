@@ -1,0 +1,12 @@
+{
+  "name": "vr-world",
+  "version": "1.0.0",
+  "description": "A 3D VR World you can walk around in",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
