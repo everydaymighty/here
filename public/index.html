@@ -133,7 +133,7 @@
     /* ── CHAT ── */
     #chat-input-wrap{
       position:absolute;bottom:50px;left:50%;transform:translateX(-50%);
-      display:none;z-index:12;background:rgba(237,233,224,0.95);
+      z-index:12;background:rgba(237,233,224,0.95);
       border:1px solid rgba(42,33,24,0.25);padding:6px 12px;
       display:none;align-items:center;gap:8px;width:340px;
     }
@@ -204,6 +204,35 @@
     #jump-btn{position:absolute;bottom:90px;right:30px;width:56px;height:56px;border-radius:50%;background:rgba(42,33,24,0.15);border:1px solid rgba(42,33,24,0.25);pointer-events:all;font-family:'Jost',sans-serif;font-size:0.6rem;letter-spacing:0.1em;color:rgba(42,33,24,0.5);text-transform:uppercase;display:flex;align-items:center;justify-content:center;}
     #sprint-btn{position:absolute;bottom:160px;right:30px;width:44px;height:44px;border-radius:50%;background:rgba(42,33,24,0.1);border:1px solid rgba(42,33,24,0.2);pointer-events:all;font-family:'Jost',sans-serif;font-size:0.55rem;letter-spacing:0.1em;color:rgba(42,33,24,0.45);text-transform:uppercase;display:flex;align-items:center;justify-content:center;}
 
+    /* ── DEV CONSOLE ── */
+    #dev-console{
+      position:absolute;bottom:0;left:0;right:0;height:220px;
+      background:rgba(10,8,6,0.93);border-top:1px solid rgba(181,145,58,0.3);
+      font-family:'Courier New',monospace;font-size:0.72rem;
+      display:none;flex-direction:column;z-index:50;
+    }
+    #dev-console.open{display:flex;}
+    #dev-console-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:4px 10px;border-bottom:1px solid rgba(181,145,58,0.2);
+      font-size:0.58rem;letter-spacing:0.2em;color:rgba(181,145,58,0.6);text-transform:uppercase;
+      flex-shrink:0;
+    }
+    #dev-console-log{
+      flex:1;overflow-y:auto;padding:6px 10px;
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .dev-line{display:flex;gap:8px;line-height:1.4;}
+    .dev-line .dev-ts{color:rgba(181,145,58,0.35);font-size:0.62rem;flex-shrink:0;margin-top:1px;}
+    .dev-line .dev-msg{color:#b8c8a0;word-break:break-all;}
+    .dev-line.dev-warn .dev-msg{color:#e8c060;}
+    .dev-line.dev-error .dev-msg{color:#e06060;}
+    .dev-line.dev-info .dev-msg{color:#80b4d8;}
+    #dev-input-row{display:flex;border-top:1px solid rgba(181,145,58,0.15);flex-shrink:0;}
+    #dev-prompt{padding:5px 10px;color:rgba(181,145,58,0.5);font-size:0.72rem;font-family:'Courier New',monospace;flex-shrink:0;}
+    #dev-input{flex:1;background:transparent;border:none;outline:none;color:#b8c8a0;font-family:'Courier New',monospace;font-size:0.72rem;padding:5px 0;}
+    #dev-input::placeholder{color:rgba(181,145,58,0.2);}
+
     canvas{display:block;}
   </style>
 </head>
@@ -252,7 +281,7 @@
     <div id="blocker-hint">[ Click to Enter ]</div>
   </div>
   <div id="crosshair"></div>
-  <div id="hud">ESC to pause · WASD · Space jump · E guestbook · T chat · M map</div>
+  <div id="hud">Tab / ESC to release mouse · WASD · Space jump · E guestbook · T chat · M map</div>
   <div id="visitor-count">1 visitor</div>
   <button id="music-btn">♪ music on</button>
   <div id="gb-prompt" class="gb-prompt">[ E ] Sign the Guestbook</div>
@@ -349,6 +378,19 @@
   </div>
   <button id="admin-btn">⚙ Lights</button>
 
+  <!-- DEV CONSOLE (` to toggle) -->
+  <div id="dev-console">
+    <div id="dev-console-header">
+      <span>Dev Console · ` to toggle</span>
+      <span id="dev-console-fps">— fps</span>
+    </div>
+    <div id="dev-console-log"></div>
+    <div id="dev-input-row">
+      <span id="dev-prompt">&gt;</span>
+      <input type="text" id="dev-input" placeholder="js expression…" autocomplete="off" spellcheck="false"/>
+    </div>
+  </div>
+
   <!-- GUESTBOOK PANEL -->
   <div id="guestbook-panel">
     <div class="gb-inner">
@@ -411,6 +453,83 @@ document.getElementById('name-input').addEventListener('keydown', e => { if (e.k
 
 // ─────────────────────────────────────────────────────────────────────────────
 function initVR() {
+  // ── Dev Console ──────────────────────────────────────────────────────────
+  const devConsole = document.getElementById('dev-console');
+  const devLog     = document.getElementById('dev-console-log');
+  const devInput   = document.getElementById('dev-input');
+  const devFps     = document.getElementById('dev-console-fps');
+  let devOpen = false;
+  let fpsFrames = 0, fpsLast = performance.now();
+
+  function devTimestamp() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0')+'.'+d.getMilliseconds().toString().padStart(3,'0');
+  }
+
+  function devAppend(msg, type='log') {
+    const line = document.createElement('div');
+    line.className = 'dev-line' + (type!=='log' ? ` dev-${type}` : '');
+    line.innerHTML = `<span class="dev-ts">${devTimestamp()}</span><span class="dev-msg">${String(msg).replace(/</g,'&lt;')}</span>`;
+    devLog.appendChild(line);
+    devLog.scrollTop = devLog.scrollHeight;
+    // Keep max 200 lines
+    while (devLog.children.length > 200) devLog.removeChild(devLog.firstChild);
+  }
+
+  // Intercept console methods
+  const _origLog   = console.log.bind(console);
+  const _origWarn  = console.warn.bind(console);
+  const _origError = console.error.bind(console);
+  console.log   = (...a) => { _origLog(...a);   devAppend(a.map(x=>typeof x==='object'?JSON.stringify(x,null,1):x).join(' '), 'log'); };
+  console.warn  = (...a) => { _origWarn(...a);  devAppend(a.map(x=>typeof x==='object'?JSON.stringify(x,null,1):x).join(' '), 'warn'); };
+  console.error = (...a) => { _origError(...a); devAppend(a.map(x=>typeof x==='object'?JSON.stringify(x,null,1):x).join(' '), 'error'); };
+  console.info  = (...a) => { _origLog(...a);   devAppend(a.map(x=>typeof x==='object'?JSON.stringify(x,null,1):x).join(' '), 'info'); };
+
+  // Catch uncaught errors
+  window.addEventListener('error', e => devAppend(`Uncaught: ${e.message} (${e.filename}:${e.lineno})`, 'error'));
+  window.addEventListener('unhandledrejection', e => devAppend(`Unhandled promise: ${e.reason}`, 'error'));
+
+  function toggleDevConsole() {
+    devOpen = !devOpen;
+    devConsole.classList.toggle('open', devOpen);
+    if (devOpen) { setTimeout(()=>devInput.focus(), 50); }
+  }
+
+  // REPL input
+  const devHistory = [];
+  let devHistIdx = -1;
+  devInput.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      const cmd = devInput.value.trim();
+      if (!cmd) return;
+      devHistory.unshift(cmd); devHistIdx = -1;
+      devAppend('> ' + cmd, 'info');
+      devInput.value = '';
+      try {
+        // Expose useful globals for the REPL
+        const camera=window._devCamera, scene=window._devScene;
+        const result = eval(cmd);
+        if (result !== undefined) devAppend(String(result));
+      } catch(err) {
+        devAppend(err.message, 'error');
+      }
+    }
+    if (e.key === 'ArrowUp') {
+      devHistIdx = Math.min(devHistIdx+1, devHistory.length-1);
+      devInput.value = devHistory[devHistIdx] || '';
+      e.preventDefault();
+    }
+    if (e.key === 'ArrowDown') {
+      devHistIdx = Math.max(devHistIdx-1, -1);
+      devInput.value = devHistIdx>=0 ? devHistory[devHistIdx] : '';
+      e.preventDefault();
+    }
+    if (e.key === 'Escape') { toggleDevConsole(); }
+  });
+
+  devAppend('Museum dev console ready. ` to toggle. Type JS to inspect.', 'info');
+
   // ── Socket.io ────────────────────────────────────────────────────────────
   const socket = io();
   const remotePlayers = {};  // id -> { mesh, label, nameSprite }
@@ -574,6 +693,10 @@ function initVR() {
   renderer.toneMappingExposure = 1.15;
   document.getElementById('vr-screen').appendChild(renderer.domElement);
 
+  // Expose to dev REPL
+  window._devCamera = camera;
+  window._devScene  = scene;
+
   // Pointer lock
   let locked = false;
   const euler = new THREE.Euler(0,0,0,'YXZ');
@@ -588,14 +711,7 @@ function initVR() {
     startMusic();
   });
 
-  // Right-click toggles pointer lock (free cursor ↔ look mode)
-  renderer.domElement.addEventListener('mousedown', e => {
-    if (e.button === 2) {
-      e.preventDefault();
-      if (locked) document.exitPointerLock();
-      else renderer.domElement.requestPointerLock();
-    }
-  });
+  // Suppress right-click context menu in the 3D view
   renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
   // Scroll-wheel speed burst ("zoop")
@@ -781,7 +897,10 @@ function initVR() {
   box(32,0.15,28,mFloor,   0,0,23);
   box(32,0.12,28,mCeiling, 0,6.12,23);
   box(32,6,0.2,mWall,      0,3,36);
-  box(0.2,6,28,mWall,    -16,3,23);
+  // Second room left wall — split to create courtyard doorway (z=18 to z=28)
+  box(0.2,6,6,mWall,   -16,3,14);  // front section (z=10 to z=17)
+  box(0.2,1.5,10,mWall,-16,5.25,23); // lintel above doorway opening
+  box(0.2,6,6,mWall,   -16,3,32);  // back section (z=29 to z=36)
   box(0.2,6,28,mWall,     16,3,23);
   // Wood planks in second room
   for(let px=-15;px<=15;px+=1.0){
@@ -891,7 +1010,50 @@ function initVR() {
   let secretUnlocked = false;
   const SECRET_PASSWORD = 'quiet'; // the word
 
-  // ── Dust Motes ───────────────────────────────────────────────────────────
+  // ── Roaming NPC (Ghost Visitor) ──────────────────────────────────────────
+  // A ghostly figure that drifts through the museum on a waypoint path
+  const npcGroup = new THREE.Group();
+  const npcColor = 0x8ab4d0;
+  const npcBody = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 16, 16),
+    new THREE.MeshStandardMaterial({ color: npcColor, emissive: npcColor, emissiveIntensity: 0.5, roughness: 0.3, transparent: true, opacity: 0.7 })
+  );
+  npcGroup.add(npcBody);
+  const npcRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.32, 0.025, 8, 32),
+    new THREE.MeshStandardMaterial({ color: npcColor, emissive: npcColor, emissiveIntensity: 0.8, transparent: true, opacity: 0.6 })
+  );
+  npcRing.rotation.x = Math.PI / 2;
+  npcGroup.add(npcRing);
+
+  // Name label
+  const npcLabelCanvas = document.createElement('canvas');
+  npcLabelCanvas.width = 256; npcLabelCanvas.height = 64;
+  const npcCtx = npcLabelCanvas.getContext('2d');
+  npcCtx.clearRect(0,0,256,64);
+  npcCtx.font = '300 20px Jost, sans-serif';
+  npcCtx.fillStyle = 'rgba(138,180,208,0.9)';
+  npcCtx.textAlign = 'center';
+  npcCtx.fillText('A Quiet Visitor', 128, 40);
+  const npcLabelTex = new THREE.CanvasTexture(npcLabelCanvas);
+  const npcLabel = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.1, 0.27),
+    new THREE.MeshBasicMaterial({ map: npcLabelTex, transparent: true, depthWrite: false })
+  );
+  npcLabel.position.y = 0.65;
+  npcGroup.add(npcLabel);
+
+  npcGroup.position.set(-8, 0.85, -5);
+  scene.add(npcGroup);
+
+  // Waypoints the NPC drifts between (x, z)
+  const npcWaypoints = [
+    [-8, -18], [0, -15], [8, -10], [6, -5], [0, 0], [-6, 5],
+    [-3, 15], [5, 20], [0, 28], [-8, 32], [8, 32], [0, 20],
+    [8, 10], [-8, -5], [-8, -18],
+  ];
+  let npcWpIdx = 0;
+  const NPC_SPEED = 1.4; // units per second, slow drift
   const MOTE_COUNT = 180;
   const moteGeo = new THREE.BufferGeometry();
   const motePos = new Float32Array(MOTE_COUNT * 3);
@@ -1291,6 +1453,14 @@ function initVR() {
   // ── Movement ─────────────────────────────────────────────────────────────
   const keys={};
   document.addEventListener('keydown', e => {
+    // Backtick toggles dev console
+    if (e.code === 'Backquote') { e.preventDefault(); toggleDevConsole(); return; }
+    // Tab releases mouse pointer (like ESC but without closing the game)
+    if (e.code === 'Tab') {
+      e.preventDefault();
+      if (locked) document.exitPointerLock();
+      return;
+    }
     keys[e.code]=true;
     if (e.code==='KeyE' && !gbOpen && !chatOpen && !secretOpen) {
       const dist = camera.position.distanceTo(gbTrigger);
@@ -1321,6 +1491,14 @@ function initVR() {
     requestAnimationFrame(animate);
     const dt=clock.getDelta(), t=clock.getElapsedTime();
 
+    // FPS counter for dev console
+    fpsFrames++;
+    const now = performance.now();
+    if (now - fpsLast >= 1000) {
+      devFps.textContent = fpsFrames + ' fps';
+      fpsFrames = 0; fpsLast = now;
+    }
+
     if (locked && !gbOpen && !chatOpen && !secretOpen) {
       const zooping = performance.now() < zoopUntil;
       const speed = zooping ? 22 : (keys['ShiftLeft']||keys['ShiftRight']||mobileSprint) ? 7 : 3.5;
@@ -1335,8 +1513,10 @@ function initVR() {
       const nx = camera.position.x + dir.x*speed*dt;
       const nz = camera.position.z + dir.z*speed*dt;
 
-      // Courtyard: accessible through left wall of room2 when z 12-34
-      const goingCourtyard = nz>=12 && nz<=34 && nx<-15.5;
+      // Courtyard: accessible ONLY through the doorway opening (z=18 to z=28)
+      const inCY = camera.position.x < -15.5; // currently in courtyard
+      const throughDoor = nz>=18 && nz<=28;   // aligned with the doorway gap
+      const goingCourtyard = (inCY && nx < -15.5) || (throughDoor && nx < -15.5);
       // Secret room: only if unlocked
       const goingSecret = nz>35.5 && Math.abs(nx)<7.5 && secretUnlocked;
 
@@ -1369,7 +1549,50 @@ function initVR() {
       if(mapPanel.classList.contains('open')) drawMap();
     }
 
-    // ── Admin Light Panel ────────────────────────────────────────────────────
+    // ── Animate NPC roamer (runs every frame) ───────────────────────────────
+    const npcTarget = npcWaypoints[npcWpIdx];
+    const npcDx = npcTarget[0] - npcGroup.position.x;
+    const npcDz = npcTarget[1] - npcGroup.position.z;
+    const npcDist2 = Math.sqrt(npcDx*npcDx + npcDz*npcDz);
+    if (npcDist2 < 0.4) {
+      npcWpIdx = (npcWpIdx + 1) % npcWaypoints.length;
+    } else {
+      npcGroup.position.x += (npcDx/npcDist2) * NPC_SPEED * dt;
+      npcGroup.position.z += (npcDz/npcDist2) * NPC_SPEED * dt;
+      npcGroup.rotation.y = Math.atan2(npcDx, npcDz);
+    }
+    npcGroup.position.y = 0.85 + Math.sin(t*1.5)*0.08;
+    npcRing.rotation.z = t * 0.9;
+    npcLabel.lookAt(camera.position);
+
+    // Animate remote players
+    Object.values(remotePlayers).forEach((rp, i) => {
+      rp.ring.rotation.z = t * 0.8 + i;
+      rp.group.children[0].position.y = Math.sin(t*1.2+i)*0.06;
+      const bubble = rp.group.getObjectByName('chatbubble');
+      if (bubble) bubble.lookAt(camera.position);
+    });
+
+    // Animate dust motes
+    const mp = motes.geometry.attributes.position;
+    for(let i=0;i<MOTE_COUNT;i++){
+      mp.array[i*3]   += moteVel[i].x;
+      mp.array[i*3+1] += moteVel[i].y;
+      mp.array[i*3+2] += moteVel[i].z;
+      const sc = spotCenters[i % spotCenters.length];
+      if (Math.abs(mp.array[i*3]   - sc[0]) > 2.5) moteVel[i].x *= -1;
+      if (mp.array[i*3+1] < 1.0 || mp.array[i*3+1] > 5.8) moteVel[i].y *= -1;
+      if (Math.abs(mp.array[i*3+2] - sc[1]) > 2.5) moteVel[i].z *= -1;
+    }
+    mp.needsUpdate = true;
+    moteMat.opacity = 0.4 + Math.sin(t*0.3)*0.15;
+
+    sculpts.forEach((s,i)=>{ s.rotation.y=t*0.25+i*Math.PI*0.6; });
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  // ── Admin Light Panel (setup runs ONCE, not inside animate) ──────────────
   const adminBtn   = document.getElementById('admin-btn');
   const adminPanel = document.getElementById('admin-panel');
 
@@ -1378,11 +1601,11 @@ function initVR() {
   // We'll capture them via scene traversal
   scene.traverse(obj => { if (obj.isSpotLight) allSpots.push(obj); });
 
-  // Find ambient & sun lights
+  // Find ambient & sun lights — stop at first match so sunOutdoor isn't captured
   let ambientLight, sunLight;
   scene.traverse(obj => {
-    if (obj.isAmbientLight) ambientLight = obj;
-    if (obj.isDirectionalLight) sunLight = obj;
+    if (obj.isAmbientLight && !ambientLight) ambientLight = obj;
+    if (obj.isDirectionalLight && !sunLight) sunLight = obj;
   });
 
   // Show admin button once the player has entered (stays visible even when paused)
@@ -1455,32 +1678,6 @@ function initVR() {
     });
   });
 
-  // Animate remote players
-    Object.values(remotePlayers).forEach((rp, i) => {
-      rp.ring.rotation.z = t * 0.8 + i;
-      rp.group.children[0].position.y = Math.sin(t*1.2+i)*0.06;
-      const bubble = rp.group.getObjectByName('chatbubble');
-      if (bubble) bubble.lookAt(camera.position);
-    });
-
-    // Animate dust motes
-    const mp = motes.geometry.attributes.position;
-    for(let i=0;i<MOTE_COUNT;i++){
-      mp.array[i*3]   += moteVel[i].x;
-      mp.array[i*3+1] += moteVel[i].y;
-      mp.array[i*3+2] += moteVel[i].z;
-      const sc = spotCenters[i % spotCenters.length];
-      if (Math.abs(mp.array[i*3]   - sc[0]) > 2.5) moteVel[i].x *= -1;
-      if (mp.array[i*3+1] < 1.0 || mp.array[i*3+1] > 5.8) moteVel[i].y *= -1;
-      if (Math.abs(mp.array[i*3+2] - sc[1]) > 2.5) moteVel[i].z *= -1;
-    }
-    mp.needsUpdate = true;
-    moteMat.opacity = 0.4 + Math.sin(t*0.3)*0.15;
-
-    sculpts.forEach((s,i)=>{ s.rotation.y=t*0.25+i*Math.PI*0.6; });
-    renderer.render(scene,camera);
-  }
-  animate();
 }
 </script>
 </body>
