@@ -100,6 +100,36 @@
     .gb-close:hover{color:var(--ink);}
     .gb-prompt{position:absolute;font-family:'Jost',sans-serif;font-size:0.62rem;letter-spacing:0.18em;color:rgba(42,33,24,0.5);text-transform:uppercase;background:rgba(237,233,224,0.85);padding:6px 14px;border:1px solid var(--border);pointer-events:none;display:none;z-index:6;transform:translateX(-50%);white-space:nowrap;}
 
+    /* ── ADMIN LIGHT PANEL ── */
+    #admin-btn{
+      position:absolute;bottom:20px;right:20px;
+      font-family:'Jost',sans-serif;font-size:0.6rem;letter-spacing:0.18em;
+      color:rgba(42,33,24,0.5);text-transform:uppercase;
+      background:rgba(237,233,224,0.85);border:1px solid rgba(42,33,24,0.2);
+      cursor:pointer;display:none;z-index:8;padding:6px 12px;transition:color 0.3s;
+    }
+    #admin-btn:hover{color:rgba(42,33,24,0.85);}
+    #admin-panel{
+      position:absolute;bottom:60px;right:20px;
+      width:280px;background:rgba(237,233,224,0.97);
+      border:1px solid rgba(42,33,24,0.18);
+      font-family:'Jost',sans-serif;
+      display:none;z-index:9;padding:1rem;
+    }
+    #admin-panel.open{display:block;}
+    .adm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.9rem;}
+    .adm-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:var(--ink);}
+    .adm-close{background:none;border:none;font-size:0.8rem;color:var(--muted);cursor:pointer;}
+    .adm-close:hover{color:var(--ink);}
+    .adm-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.55rem;}
+    .adm-row label{font-size:0.62rem;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;width:100px;flex-shrink:0;}
+    .adm-row input[type=range]{flex:1;accent-color:var(--gold);}
+    .adm-val{font-size:0.65rem;color:var(--ink);width:36px;text-align:right;flex-shrink:0;}
+    .adm-color{width:36px;height:22px;border:1px solid var(--border);cursor:pointer;padding:0;background:none;flex-shrink:0;}
+    .adm-presets{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border);}
+    .adm-preset{background:transparent;border:1px solid var(--border);font-family:'Jost',sans-serif;font-size:0.6rem;letter-spacing:0.1em;color:var(--ink);padding:0.35rem 0.7rem;cursor:pointer;transition:background 0.2s,color 0.2s;}
+    .adm-preset:hover{background:var(--ink);color:var(--warm);}
+
     canvas{display:block;}
   </style>
 </head>
@@ -152,6 +182,49 @@
   <div id="visitor-count">1 visitor</div>
   <button id="music-btn">♪ music on</button>
   <div id="gb-prompt" class="gb-prompt">[ E ] Sign the Guestbook</div>
+
+  <!-- ADMIN LIGHT PANEL -->
+  <div id="admin-panel">
+    <div class="adm-header">
+      <span class="adm-title">Light Control</span>
+      <button class="adm-close" id="adm-close">✕</button>
+    </div>
+    <div class="adm-row">
+      <label>Ambient</label>
+      <input type="range" id="adm-ambient" min="0" max="2" step="0.01" value="0.65"/>
+      <span class="adm-val" id="adm-ambient-val">65%</span>
+    </div>
+    <div class="adm-row">
+      <label>Sunlight</label>
+      <input type="range" id="adm-sun" min="0" max="2" step="0.01" value="0.6"/>
+      <span class="adm-val" id="adm-sun-val">60%</span>
+    </div>
+    <div class="adm-row">
+      <label>Spot intensity</label>
+      <input type="range" id="adm-spot" min="0" max="8" step="0.1" value="2.5"/>
+      <span class="adm-val" id="adm-spot-val">2.5</span>
+    </div>
+    <div class="adm-row">
+      <label>Sun color</label>
+      <input type="color" id="adm-sun-color" value="#fff5e8" class="adm-color"/>
+    </div>
+    <div class="adm-row">
+      <label>Ambient color</label>
+      <input type="color" id="adm-amb-color" value="#fff8f0" class="adm-color"/>
+    </div>
+    <div class="adm-row">
+      <label>Fog distance</label>
+      <input type="range" id="adm-fog" min="10" max="100" step="1" value="55"/>
+      <span class="adm-val" id="adm-fog-val">55</span>
+    </div>
+    <div class="adm-presets">
+      <button class="adm-preset" data-preset="noon">Noon</button>
+      <button class="adm-preset" data-preset="golden">Golden Hour</button>
+      <button class="adm-preset" data-preset="candle">Candlelit</button>
+      <button class="adm-preset" data-preset="night">Night</button>
+    </div>
+  </div>
+  <button id="admin-btn">⚙ Lights</button>
 
   <!-- GUESTBOOK PANEL -->
   <div id="guestbook-panel">
@@ -406,7 +479,7 @@ function initVR() {
 
   // ── Materials ────────────────────────────────────────────────────────────
   const mWall    = new THREE.MeshStandardMaterial({color:0xf0ebe0,roughness:0.95});
-  const mFloor   = new THREE.MeshStandardMaterial({color:0xcfc5b0,roughness:0.7,metalness:0.05});
+  const mFloor   = new THREE.MeshStandardMaterial({color:0x3a2510,roughness:0.55,metalness:0.05});
   const mCeiling = new THREE.MeshStandardMaterial({color:0xf5f0e8,roughness:1.0});
   const mMolding = new THREE.MeshStandardMaterial({color:0xe5ddd0,roughness:0.8});
   const mFrame   = new THREE.MeshStandardMaterial({color:0x8b6914,roughness:0.3,metalness:0.7});
@@ -442,9 +515,12 @@ function initVR() {
   function base(w,d,x,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,0.18,d),mMolding);m.position.set(x,0.09,z);scene.add(m);}
   base(32,0.12,0,-21.9); base(32,0.12,0,9.9); base(0.12,32,-15.9,-6); base(0.12,32,15.9,-6);
 
-  // Grid
-  const grid=new THREE.GridHelper(32,16,0xc0b8a8,0xc0b8a8);
-  grid.position.set(0,0.1,-6); grid.material.opacity=0.35; grid.material.transparent=true; scene.add(grid);
+  // Wood plank lines
+  const plankMat = new THREE.MeshStandardMaterial({color:0x2a1a08,roughness:0.6,metalness:0});
+  for(let px=-15;px<=15;px+=1.0){
+    const plank=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.005,32),plankMat);
+    plank.position.set(px,0.076,-6); scene.add(plank);
+  }
 
   // Wainscoting
   for(let px=-12;px<=12;px+=4){
@@ -633,7 +709,94 @@ function initVR() {
       }
     }
 
-    // Animate remote players
+    // ── Admin Light Panel ────────────────────────────────────────────────────
+  const adminBtn   = document.getElementById('admin-btn');
+  const adminPanel = document.getElementById('admin-panel');
+
+  // Collect all artwork spotlights for global control
+  const allSpots = [];
+  // We'll capture them via scene traversal
+  scene.traverse(obj => { if (obj.isSpotLight) allSpots.push(obj); });
+
+  // Find ambient & sun lights
+  let ambientLight, sunLight;
+  scene.traverse(obj => {
+    if (obj.isAmbientLight) ambientLight = obj;
+    if (obj.isDirectionalLight) sunLight = obj;
+  });
+
+  // Show admin button when locked
+  document.addEventListener('pointerlockchange', () => {
+    const isLocked = document.pointerLockElement === renderer.domElement;
+    adminBtn.style.display = isLocked ? 'block' : 'none';
+    if (!isLocked) adminPanel.classList.remove('open');
+  });
+
+  adminBtn.addEventListener('click', () => {
+    adminPanel.classList.toggle('open');
+  });
+  document.getElementById('adm-close').addEventListener('click', () => {
+    adminPanel.classList.remove('open');
+  });
+
+  function pct(v, max) { return Math.round(v/max*100)+'%'; }
+
+  document.getElementById('adm-ambient').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (ambientLight) ambientLight.intensity = v;
+    document.getElementById('adm-ambient-val').textContent = pct(v, 2);
+  });
+  document.getElementById('adm-sun').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (sunLight) sunLight.intensity = v;
+    document.getElementById('adm-sun-val').textContent = pct(v, 2);
+  });
+  document.getElementById('adm-spot').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    allSpots.forEach(s => s.intensity = v);
+    document.getElementById('adm-spot-val').textContent = v.toFixed(1);
+  });
+  document.getElementById('adm-sun-color').addEventListener('input', e => {
+    if (sunLight) sunLight.color.set(e.target.value);
+  });
+  document.getElementById('adm-amb-color').addEventListener('input', e => {
+    if (ambientLight) ambientLight.color.set(e.target.value);
+  });
+  document.getElementById('adm-fog').addEventListener('input', e => {
+    const v = parseInt(e.target.value);
+    if (scene.fog) { scene.fog.far = v; scene.fog.near = v * 0.33; }
+    document.getElementById('adm-fog-val').textContent = v;
+  });
+
+  const presets = {
+    noon:    { ambient:0.85, sun:0.8,  spot:2.5, sunCol:'#ffffff', ambCol:'#f8f8f8', fog:60 },
+    golden:  { ambient:0.55, sun:0.9,  spot:3.5, sunCol:'#ffb347', ambCol:'#ffcc88', fog:40 },
+    candle:  { ambient:0.25, sun:0.1,  spot:5.0, sunCol:'#cc7722', ambCol:'#ff9944', fog:25 },
+    night:   { ambient:0.08, sun:0.05, spot:1.2, sunCol:'#334466', ambCol:'#223355', fog:18 },
+  };
+
+  document.querySelectorAll('.adm-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = presets[btn.dataset.preset];
+      if (!p) return;
+      if (ambientLight) { ambientLight.intensity = p.ambient; ambientLight.color.set(p.ambCol); }
+      if (sunLight)     { sunLight.intensity = p.sun;         sunLight.color.set(p.sunCol); }
+      allSpots.forEach(s => s.intensity = p.spot);
+      if (scene.fog)    { scene.fog.far = p.fog; scene.fog.near = p.fog * 0.33; }
+      document.getElementById('adm-ambient').value = p.ambient;
+      document.getElementById('adm-sun').value     = p.sun;
+      document.getElementById('adm-spot').value    = p.spot;
+      document.getElementById('adm-sun-color').value = p.sunCol;
+      document.getElementById('adm-amb-color').value = p.ambCol;
+      document.getElementById('adm-fog').value     = p.fog;
+      document.getElementById('adm-ambient-val').textContent = pct(p.ambient, 2);
+      document.getElementById('adm-sun-val').textContent     = pct(p.sun, 2);
+      document.getElementById('adm-spot-val').textContent    = p.spot.toFixed(1);
+      document.getElementById('adm-fog-val').textContent     = p.fog;
+    });
+  });
+
+  // Animate remote players
     Object.values(remotePlayers).forEach((rp, i) => {
       rp.ring.rotation.z = t * 0.8 + i;
       rp.group.children[0].position.y = Math.sin(t*1.2+i)*0.06;
