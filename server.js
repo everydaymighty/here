@@ -53,6 +53,11 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('chat:message', (data) => {
+    if (!data.text || typeof data.text !== 'string') return;
+    socket.broadcast.emit('chat:message', { id: socket.id, text: data.text.slice(0, 80) });
+  });
+
   socket.on('disconnect', () => {
     delete players[socket.id];
     io.emit('player:left', socket.id);
